@@ -1,7 +1,9 @@
 import urllib.request
 import urllib.parse
 import time
+import datetime
 import io
+import os
 from bs4 import BeautifulSoup
 
 def cache_scraper(query, total):
@@ -58,8 +60,16 @@ def download_cached(cached_pages):
 			div.decompose()
 		title = mainContent.title.string
 		mainContent = str(mainContent)
-		with io.open("save/%s.html" % make_safe_filename(title), "w+", encoding="utf-8") as f:
+
+		date = soup.find_all("div")[3]
+		date = date.strong.text
+		#mainContent = "<center><h2>Cached on " + date + "</h2></center><br><br>" + mainContent
+		# ^ This just adds the cached date, if you need it for comparison (ie. compare against google's cache)
+		fpath = "save/%s.html" % make_safe_filename(title)
+		with io.open(fpath, "w+", encoding="utf-8") as f:
 			f.write(mainContent)
+		timestamp = time.mktime(datetime.datetime.strptime(date, "%m/%d/%Y").timetuple())
+		os.utime(fpath, (timestamp, timestamp))
 
 def make_safe_filename(s):
     def safe_char(c):
