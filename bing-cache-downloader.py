@@ -1,5 +1,6 @@
 import urllib.request
 import urllib.parse
+from urllib.parse import unquote
 import time
 import datetime
 import io
@@ -40,13 +41,12 @@ def cache_scraper(query, total):
 
 
 def download_cached(cached_pages):
-	# Just some headers so Bing stops screaming at us
+	# Just some random headers so Bing stops screaming at us
 	headers = {
 	    'HTTP_USER_AGENT': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.13) Gecko/2009073022 Firefox/3.0.13',
 	    'HTTP_ACCEPT': 'text/html,application/xhtml+xml,application/xml; q=0.9,*/*; q=0.8',
 	    'Content-Type': 'application/x-www-form-urlencoded'
 	}
-
 	for page in cached_pages:  # Iterates thru all the links
 		req = urllib.request.urlopen(page)
 		raw_page = req.read()
@@ -65,19 +65,15 @@ def download_cached(cached_pages):
 		date = date.strong.text
 		#mainContent = "<center><h2>Cached on " + date + "</h2></center><br><br>" + mainContent
 		# ^ This just adds the cached date, if you need it for comparison (ie. compare against google's cache)
-		fpath = "save/%s.html" % make_safe_filename(title)
+		title = unquote(soup.base['href']).split("/")[-1]
+		title = title.replace(":","-")
+		title = title.replace("?", "")
+		fpath = "save/%s.html" % title
 		with io.open(fpath, "w+", encoding="utf-8") as f:
 			f.write(mainContent)
 		timestamp = time.mktime(datetime.datetime.strptime(date, "%m/%d/%Y").timetuple())
 		os.utime(fpath, (timestamp, timestamp))
 
-def make_safe_filename(s):
-    def safe_char(c):
-        if c.isalnum():
-            return c
-        else:
-            return "_"
-    return "".join(safe_char(c) for c in s).rstrip("_")
 
 def main():
 	website = "wikispiv.com" 
@@ -87,10 +83,8 @@ def main():
 	print(query)
 	number_of_pages = 600
 	
-	# Grab the cached URLs of the results
 	cached_pages = cache_scraper(query, number_of_pages)
 	cached_pages = list(set(cached_pages)) # Remove duplicates	
-	download_cached(cached_pages)
 
 	## Manual Backup ##
 	# write cache urls only to text file for easy scrape with wget
@@ -98,6 +92,9 @@ def main():
 		for line in cached_pages:
 			f.write("%s\n" % line)
 	# Use wget to grab the pages (-k -E -p -i cached_urls.txt)
+
+	# Grab the cached URLs of the results
+	download_cached(cached_pages)
 
 if __name__ == "__main__":
     main()
