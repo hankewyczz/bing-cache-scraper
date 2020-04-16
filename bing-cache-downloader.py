@@ -73,20 +73,20 @@ def download_cached(cached_pages):
 		timestamp = datetime.datetime.strptime(date, "%m/%d/%Y").timestamp()
 		os.utime(fpath, (timestamp, timestamp))
 
-def main():
-	website = "wikispiv.com" 
-	args = " -user" 			# any filter arguments?
+# (String website, String args)
+# Example usage: main("http://example.com", "videos", numPages=50)
+def main(website, args, numPages = 600):
 	query_raw = "site:" + website + args
 	query = parse.quote(query_raw)
-	number_of_pages = 600
 	
-	cached_pages = cache_scraper(query, number_of_pages)
+	cached_pages = cache_scraper(query, numPages)
 	cached_pages = list(set(cached_pages)) # Remove duplicates	
 
 	#w Manual Backup - writes the cache urls to a txt file for wget scraping
 	with open("cached_urls.txt", "a+") as f:
 		for line in cached_pages:
 			f.write("%s\n" % line)
+			
 	# If using wget : (-k -E -p -i cached_urls.txt)
 
 	# Download the cached pages
