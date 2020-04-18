@@ -16,8 +16,6 @@ class TestParseSoup(unittest.TestCase):
 
 
 
-
-
 # tests scrapeSearchResults AND parseSearchResults
 class TestScrapeParseSearchResults(unittest.TestCase):
 	def setUp(self):
