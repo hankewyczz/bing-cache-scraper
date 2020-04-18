@@ -43,7 +43,6 @@ def scrapeSearchResults(query, total):
 def parseSearchResults(cachedResults, query):
 	cacheURLs = []
 	for link in cachedResults:
-		# originalURL = link.cite.get_text()   # Grabs the original URL, to visually see what results are being gotten
 		cacheStr = link.get('u')
 		if (cacheStr != None):
 			cacheStrSplit = cacheStr.split('|')
@@ -112,7 +111,10 @@ def main(website, args, numPages=600):
 		for line in cachedResults:
 			f.write("%s\n" % line)
 			
-	# If using wget : (-k -E -p -i cached_urls.txt)
+	'''
+	If you want to use wget, use args:
+		-k -E -p -i, then pass cached_urls.txt
+	'''
 
 	# Download the cached pages
 	downloadCached(cachedResults)
