@@ -23,21 +23,6 @@ def parseSoup(page):
 	return BeautifulSoup(text, 'html.parser')
 
 
-## Scrapes all the divs from the search results
-def scrapeSearchResults(query, total):
-	cachedURLs = []
-	for i in range(1, total, 14):  # Decides which result to start at, 14 per page
-		searchPage = 'http://www.bing.com/search?q=%s&first=%d' % (query, i)
-		soup = parseSoup(searchPage)
-
-		# Grabs the main divs from all the results
-		cachedResults = soup.find_all("div", class_="b_attribution")
-
-		cachedURLs.append(paserSearchResults(cachedResults, query))
-
-
-	return cachedResults
-
 
 ## Parses the search results to get the URLS
 def parseSearchResults(cachedResults, query):
@@ -46,10 +31,29 @@ def parseSearchResults(cachedResults, query):
 		cacheStr = link.get('u')
 		if (cacheStr != None):
 			cacheStrSplit = cacheStr.split('|')
-			cacheURL = "http://cc.bingj.com/cache.aspx?q={0}&d={1}&mkt=en-US&setlang=en-US&w={2}"
-			.format(query, cacheStrSplit[2], cacheStrSplit[3])
-		cacheURLs.append(cacheURL)
+			cacheURL = ("http://cc.bingj.com/cache.aspx?q={0}&d={1}"
+				"&mkt=en-US&setlang=en-US&w={2}").format(query, cacheStrSplit[2], cacheStrSplit[3])
+			
+			cacheURLs.append(cacheURL)
 	return cacheURLs
+
+
+
+
+## Scrapes all the divs from the search results
+def scrapeSearchResults(query, total):
+	cachedURLs = []
+	for i in range(1, max(total, 14), 14):  # Decides which result to start at, 14 per page
+		searchPage = 'http://www.bing.com/search?q=%s&first=%d' % (query, i)
+		soup = parseSoup(searchPage)
+
+		# Grabs the main divs from all the results
+		cachedResults = soup.find_all("div", class_="b_attribution")
+
+		cachedURLs.append(parseSearchResults(cachedResults, query))
+
+
+	return cachedResults
 
 
 
@@ -59,9 +63,9 @@ def saveCached(title):
 	# Formats the string to be a valid filename
 	newTitle = ""
 	for c in title:
-		if c.isalnum or c == "," or c == "-" or c == "_":
+		if c.isalnum() or c == "," or c == "-" or c == "_":
 			newTitle += c
-		elif:
+		else:
 			newTitle += "_"
 
 	# Subdirectory to save the files in
@@ -103,7 +107,7 @@ def main(website, args, numPages=600):
 	rawQuery = "site:" + website + args
 	query = parse.quote(rawQuery)
 	
-	cachedResults = cache_scraper(query, numPages)
+	cachedResults = scrapeSearchResults(query, numPages)
 	cachedResults = list(set(cachedResults)) # Remove duplicates	
 
 	#w Manual Backup - writes the cache urls to a txt file for wget scraping
